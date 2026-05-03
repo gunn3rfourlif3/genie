@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles for the Premium look */
+body {
+  margin: 0;
+  background-color: #1e1e2f;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card {
+  background: #27293d;
+  border-radius: 0.2857rem;
+  box-shadow: 0 1px 20px 0px rgba(0, 0, 0, 0.1);
+  border: 0;
+}
