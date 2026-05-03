@@ -3,7 +3,7 @@ import React from 'react';
 const SupportQueue = ({ events }) => (
   <div className="card p-6">
     <div className="card-header mb-6">
-       <h4 className="text-slate-400 text-sm uppercase mb-6">Support Priority Queue</h4>
+       <h4 className="text-slate-400 text-sm uppercase mb-6">Priority Support Queue</h4>
     </div>
     <div className="table-responsive">
       <table className="w-full text-left">
