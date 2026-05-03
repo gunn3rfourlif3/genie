@@ -17,7 +17,7 @@ class GenieSupportEngine:
         self.consumer = KafkaConsumer(
             'predictive-maintenance',
             bootstrap_servers=['127.0.0.1:9092'],
-            group_id='genie_prod_v1',
+            group_id='genie_local_v1',
             value_deserializer=lambda x: json.loads(x.decode('utf-8')),
             api_version=(0, 10, 1)
         )
