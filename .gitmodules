@@ -1,0 +1,3 @@
+[submodule "genie-dashboard"]
+	path = genie-dashboard
+	url = https://github.com/gunn3rfourlif3/genie-dashboard.git
