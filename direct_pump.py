@@ -1,16 +1,15 @@
-import requests
-import time
-import random
+import requests, time, random, os
+from dotenv import load_dotenv
 
-BRIDGE_URL = 'http://127.0.0.1:4001/event'
+load_dotenv()
+BRIDGE_URL = os.getenv('BRIDGE_URL')
 
 def pump_direct():
     devices = ['ZAAKA-001', 'ZAAKA-002', 'ZAAKA-003', 'ZAAKA-004', 'ZAAKA-005']
-    print("--- Zaaka Genie: Direct Bridge Pump Starting ---")
+    print(f"--- Zaaka Genie: Direct Bridge Pump Starting to {BRIDGE_URL} ---")
     
     while True:
         device = random.choice(devices)
-        # Mocking the payload the Dashboard expects
         payload = {
             "device": device,
             "prob": round(random.uniform(0.1, 0.95), 2),
@@ -19,7 +18,6 @@ def pump_direct():
         }
         
         try:
-            # Bypass proxies to ensure it hits the local node process
             response = requests.post(
                 BRIDGE_URL, 
                 json=payload, 
@@ -30,7 +28,7 @@ def pump_direct():
         except Exception as e:
             print(f"Error hitting Bridge: {e}")
             
-        time.sleep(0.3) # Fast updates to see UI performance
+        time.sleep(0.3)
 
 if __name__ == "__main__":
     pump_direct()

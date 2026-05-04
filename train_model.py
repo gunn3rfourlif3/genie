@@ -1,24 +1,23 @@
 import pandas as pd
 import xgboost as xgb
+import joblib, os
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
-import joblib
+from sklearn.metrics import accuracy_score
+from dotenv import load_dotenv
 
-# 1. Load the dataset
-print("Loading dataset for training...")
-df = pd.read_csv('predictive_maintenance_dataset.csv') # Replace with your actual filename
+load_dotenv()
+CSV_FILE = os.getenv('CSV_FILE', 'predictive_maintenance_dataset.csv')
+MODEL_PATH = os.getenv('MODEL_PATH', 'xgb_model.pkl')
 
-# 2. Feature Selection
-# We use the metrics to predict the 'failure' column
-features = ['metric1', 'metric2', 'metric3', 'metric4', 'metric5', 'metric6', 'metric7', 'metric8', 'metric9']
+print(f"Loading {CSV_FILE} for training...")
+df = pd.read_csv(CSV_FILE)
+
+features = [f'metric{i}' for i in range(1, 10)]
 X = df[features]
 y = df['failure']
 
-# 3. Split data (80% to learn, 20% to test its knowledge)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 4. Initialize and Train XGBoost
-print("Training the XGBoost model... this may take a moment.")
 model = xgb.XGBClassifier(
     n_estimators=100,
     max_depth=6,
@@ -28,13 +27,5 @@ model = xgb.XGBClassifier(
 )
 
 model.fit(X_train, y_train)
-
-# 5. Verify Accuracy
-predictions = model.predict(X_test)
-print(f"Training Complete! Model Accuracy: {accuracy_score(y_test, predictions):.2%}")
-print("\nClassification Report:")
-print(classification_report(y_test, predictions))
-
-# 6. Save the 'Brain'
-joblib.dump(model, 'xgb_model.pkl')
-print("Model saved as 'xgb_model.pkl'. You can now run the consumer!")
+joblib.dump(model, MODEL_PATH)
+print(f"Model saved to {MODEL_PATH}")

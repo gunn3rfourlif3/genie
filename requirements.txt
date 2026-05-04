@@ -1,0 +1,8 @@
+pandas
+numpy
+xgboost
+joblib
+kafka-python
+requests
+python-dotenv
+scikit-learn
