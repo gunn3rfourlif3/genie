@@ -11,6 +11,7 @@ const socket = io('http://localhost:4001', { transports: ['websocket'] });
 const App = () => {
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState({ total: 0, reliability: '100%', critical: 0 });
+  const [timeRange, setTimeRange] = useState('week'); // Default toggle state
   
   const [priorityQueue, setPriorityQueue] = useState(() => {
     const saved = localStorage.getItem('genie_priority_queue');
@@ -30,7 +31,8 @@ const App = () => {
   }, []);
 
   const handleNewEvent = (data) => {
-    setEvents(prev => [data, ...prev].slice(0, 8));
+    // Keep up to 100 records for chart history, but use slice elsewhere for UI
+    setEvents(prev => [data, ...prev].slice(0, 100));
     
     if (data.prediction === "CRITICAL") {
       setPriorityQueue(prev => {
@@ -61,7 +63,7 @@ const App = () => {
         <div className="content w-full px-4">
           <div className="row mb-4">
             <div className="col-12 text-left">
-              <h5 className="card-category text-info uppercase tracking-widest text-[11px]">FAULT FORECASTER - v1</h5>
+              <h5 className="card-category text-info uppercase tracking-widest text-[11px]">Genie AI Pipeline v1</h5>
               <h2 className="card-title text-white font-light text-3xl uppercase">PROJECT GENIE</h2>
             </div>
           </div>
@@ -76,28 +78,14 @@ const App = () => {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8 w-full">
             <div className="row mt-8 w-full">
               <div className="card shadow-lg p-5 w-full min-h-[400px]">
-                {/* Always display the component; internal logic should handle the headers */}
                 <SupportQueue events={currentCriticalRows} onResolve={resolveRecord} />
-                
                 {priorityQueue.length > 0 ? (
                   totalPages > 1 && (
                     <div className="flex justify-between items-center mt-4 px-4 text-slate-400 text-sm">
                       <span>Page {currentPage} of {totalPages}</span>
                       <div className="flex gap-2">
-                        <button 
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className="px-3 py-1 bg-gray-800 rounded disabled:opacity-30"
-                        >
-                          Previous
-                        </button>
-                        <button 
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
-                          className="px-3 py-1 bg-gray-800 rounded disabled:opacity-30"
-                        >
-                          Next
-                        </button>
+                        <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-30">Previous</button>
+                        <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-30">Next</button>
                       </div>
                     </div>
                   )
@@ -112,12 +100,27 @@ const App = () => {
             </div> 
           </div>
         
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
-            <div className="lg:col-span-2">
-              <PerformanceChart events={events} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full mt-8">
+            <div className="lg:col-span-2 card shadow-lg p-5">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-white font-light uppercase tracking-wider text-sm">System Performance</h4>
+                <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
+                  {['week', 'month', 'year'].map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setTimeRange(range)}
+                      className={`px-3 py-1 text-[10px] uppercase rounded-md transition-all ${timeRange === range ? 'bg-info text-white' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <PerformanceChart events={events} range={timeRange} />
             </div>
             <div className="lg:col-span-1">
-              <EventStream events={events} />
+              {/* Force EventStream to only show 8 rows despite larger events state */}
+              <EventStream events={events.slice(0, 8)} />
             </div>
           </div>
         </div>
