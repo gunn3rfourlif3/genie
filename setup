@@ -1,0 +1,19 @@
+#!/bin/bash
+# setup_env.sh
+echo "--- Initializing Genie Environment ---"
+
+# Create venv if it doesn't exist
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+
+# Install dependencies
+./venv/bin/pip install -r requirements.txt
+
+# Ensure .env exists - if not, create a template
+if [ ! -f ".env" ]; then
+    cp .env.example .env
+    echo "Warning: .env created from template. Please update with VPS values."
+fi
+
+echo "Environment Ready."
