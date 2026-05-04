@@ -14,15 +14,16 @@ producer = KafkaProducer(
 )
 
 def generate_csv_style_event():
-    # 1. Use 'device' (not device_id) to match consumer.py line 42 & 73
-    # 2. Add 'date' and 'failure' keys which consumer.py expects to drop
+    device_name = f"ZAAKA-{random.randint(10, 99)}"
     payload = {
-        "device": f"ZAAKA-{random.randint(10, 99)}",
+        "id": device_name,  # Add this! This is what the Bridge/UI wants.
+        "device": device_name, 
         "date": datetime.now().strftime("%Y-%m-%d"),
         "failure": 0 
     }
-    
-    # 3. Generate metric1 through metric9 as floats
+
+
+   # 3. Generate metric1 through metric9 as floats
     # We simulate a "pulse" by oscillating these values
     for i in range(1, 10):
         payload[f"metric{i}"] = round(random.uniform(10.0, 50.0), 4)

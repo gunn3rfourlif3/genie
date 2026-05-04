@@ -70,10 +70,12 @@ class GenieSupportEngine:
     def run(self):
         for msg in self.consumer:
             record = msg.value
-            df = pd.DataFrame([record]).drop(columns=['date', 'device', 'failure'], errors='ignore')
+            # All columns must be dropped so only numeric metrics remain for XGBoost
+            df = pd.DataFrame([record]).drop(columns=['id', 'date', 'device', 'failure'], errors='ignore')
             prob = self.model.predict_proba(df)[0][1]
             payload = self.get_metrics(record, prob)
-            self.executor.submit(requests.post, 'http://127.0.0.1:4001/event', json=payload)
+            # Send to the production bridge URL
+            self.executor.submit(requests.post, 'https://genie.zaaka.io/event', json=payload)
 
 if __name__ == "__main__":
     GenieSupportEngine().run()
