@@ -4,36 +4,36 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 
 const app = express();
+
+// Middleware
 app.use(cors());
-app.use(express.json()); // Essential for parsing consumer_2.py POST requests
+app.use(express.json());
 
 const server = http.createServer(app);
+
+// Socket.io Configuration[cite: 1, 3]
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allows your React app to connect regardless of its port
+    origin: "*", // In production, replace "*" with "http://your-domain.com"
     methods: ["GET", "POST"]
   }
 });
 
-// Change this line in your bridge.js
+// Endpoint for consumer_10.py
 app.post('/event', (req, res) => {
   const telemetryData = req.body;
   
-  // This sends the data to your React App.js
+  // Broadcast to all connected Dashboards[cite: 1, 3]
   io.emit('telemetry', telemetryData);
   
-  console.log(`Relayed data for Device: ${telemetryData.device_id}`);
+  console.log(`[${new Date().toLocaleTimeString()}] Relayed: ${telemetryData.device_id}`);
   res.status(200).send({ status: 'success' });
 });
 
-server.listen(4001, () => {
-  console.log('Genie Bridge is LIVE on port 4001');
+// Health check for VPS monitoring
+app.get('/health', (req, res) => res.status(200).send('Bridge is Healthy'));
+
+const PORT = process.env.PORT || 4001;
+server.listen(PORT, () => {
+  console.log(`Genie Bridge LIVE on port ${PORT}`);
 });
-
-// Add this near the top of bridge.js
-app.use((req, res, next) => {
-  console.log(`${req.method} request to ${req.url}`);
-  next();
-});
-
-

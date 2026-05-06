@@ -8,7 +8,6 @@ load_dotenv()
 
 class GenieSupportEngine:
     def __init__(self):
-        # Local paths - ensure xgb_model.pkl is in your local folder
         self.model_path = os.getenv('MODEL_PATH', './xgb_model.pkl')
         self.bridge_url = os.getenv('BRIDGE_URL', 'http://127.0.0.1:4001/event')
         self.broker = os.getenv('KAFKA_BROKER', 'localhost:9092')
@@ -16,22 +15,22 @@ class GenieSupportEngine:
         
         try:
             self.model = joblib.load(self.model_path)
-            print(f"[{datetime.now()}] Local Model loaded.")
+            print(f"[{datetime.now()}] Local Model loaded successfully.")
         except Exception as e:
-            print(f"[{datetime.now()}] Error: {e}")
+            print(f"[{datetime.now()}] Model Load Error: {e}")
             self.model = None
 
+        # DEBUG UPDATE: Changed group_id and offset to force-read existing pulses[cite: 3]
         self.consumer = KafkaConsumer(
             self.topic,
             bootstrap_servers=self.broker,
-            auto_offset_reset='latest',
-            group_id='genie_local_dev_v1', 
+            auto_offset_reset='earliest', 
+            group_id='genie_debug_session_unique', 
             value_deserializer=lambda x: json.loads(x.decode('utf-8'))
         )
 
     def process_message(self, data):
         try:
-            # Map metrics to satisfy the XGBoost schema
             features = pd.DataFrame([{
                 'metric1': data.get('metric1', 0),
                 'metric2': data.get('metric2', 0),
@@ -50,15 +49,12 @@ class GenieSupportEngine:
             else:
                 status = "MODEL_OFFLINE"
         except Exception as e:
-            print(f"Prediction Mismatch: {e}")
             status = "ERROR" 
 
-        # Build the full payload for the dashboard
         return {
             "device_id": data.get('device_id', 'Unknown'),
-            "health": data.get('health_score', 0), 
+            "health_score": data.get('health_score', 0), 
             "prediction": status,
-            # Pull the new keys from data to populate the Support Queue columns
             "urgency": data.get('urgency', 'NONE'),
             "leading_indicator": data.get('leading_indicator', 'N/A'),
             "mttr": data.get('mttr', '0h'),
@@ -66,9 +62,17 @@ class GenieSupportEngine:
         }
 
     def run(self):
+        print(f"[{datetime.now()}] Engine listening for pulses on {self.topic}...")
         for msg in self.consumer:
+            print(f"[{datetime.now()}] Pulse received for: {msg.value.get('device_id')}")
             payload = self.process_message(msg.value)
-            requests.post(self.bridge_url, json=payload)
+            
+            try:
+                # Forward to Bridge[cite: 1, 3]
+                resp = requests.post(self.bridge_url, json=payload)
+                print(f"[{datetime.now()}] Forwarded to Bridge: {resp.status_code}")
+            except Exception as e:
+                print(f"[{datetime.now()}] Bridge POST failed: {e}")
 
 if __name__ == "__main__":
     GenieSupportEngine().run()
