@@ -52,12 +52,15 @@ class GeniePulseGenerator:
         while True:
             if self.producer:
                 pulse = self.generate_pulse()
-                self.producer.send(self.topic, value=pulse)
+                future = self.producer.send(self.topic, value=pulse)
+                # Force the script to wait for Kafka to say "Got it!"
+                future.get(timeout=10) 
                 print(f"Pulse Sent: {pulse['device_id']} | Health: {pulse['health_score']}")
-            
-            if once: break
-            time.sleep(1)
 
+            if once: 
+                self.producer.flush() # Ensure buffer is empty before exiting
+                break
+            time.sleep(1)
 if __name__ == "__main__":
     import sys
     pulser = GeniePulseGenerator()

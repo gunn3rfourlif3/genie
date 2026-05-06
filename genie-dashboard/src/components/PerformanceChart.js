@@ -10,7 +10,7 @@ const PerformanceChart = ({ events }) => {
 
   return (
     <div className="card p-6 min-h-[400px]">
-      <h4 className="text-slate-400 text-sm uppercase mb-6">System Performance (Health %)</h4>
+      <h4 className="text-slate-400 text-sm uppercase mb-6">Network Health</h4>
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>

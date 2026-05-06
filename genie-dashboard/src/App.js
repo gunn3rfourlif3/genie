@@ -6,8 +6,9 @@ import SupportQueue from './components/SupportQueue';
 import EventStream from './components/EventStream';
 import './App.css';
 
-const socket = io('http://localhost:4001', { transports: ['websocket'] });
-
+//const socket = io('http://localhost:4001', { transports: ['websocket'] });
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const socket = new WebSocket(`${protocol}//${window.location.hostname}/event`);
 
 const App = () => {
   const [events, setEvents] = useState([]);
@@ -101,7 +102,7 @@ const getNetworkStatus = () => {
   if (aiFlags > 0 || reliability < 50) return "CRITICAL"; 
   
   // 2. DEGRADED: Significant queue or dropping reliability
-  if (reliability < 75 || queueDepth > 50) return "DEGRADED"; 
+  if (reliability < 70 || queueDepth > 50) return "DEGRADED"; 
   
   // 3. STABLE: Active processing with manageable queue
   if (queueDepth > 0) return "STABLE"; 
@@ -121,7 +122,7 @@ const getNetworkStatus = () => {
         <div className="content w-full px-4">
           <div className="row mb-4">
             <div className="col-12 text-left">
-              <h5 className="card-category text-info uppercase tracking-widest text-[11px]">Genie AI Pipeline v1</h5>
+              <h5 className="card-category text-info uppercase tracking-widest text-[11px]">Fault forecasting Pipeline v1</h5>
               <h2 className="card-title text-white font-light text-3xl uppercase">PROJECT GENIE</h2>
             </div>
           </div>
@@ -130,7 +131,7 @@ const getNetworkStatus = () => {
             <StatCard label="Total Records" val={stats.total} icon={Cpu} color="primary" />
             <StatCard label="Fleet Reliability" val={stats.reliability} icon={Activity} color="info" />
             <StatCard label="AI Flagged" val={stats.critical} icon={Shield} color="success" />
-            <StatCard label="System State" val={getNetworkStatus()} icon={Cpu} color={aiFlags > 0 || reliability < 50 ? "pink-500" : (reliability < 75 ? "warning" : (queueDepth > 0 ? "info" : "success"))} />
+            <StatCard label="Network State" val={getNetworkStatus()} icon={Cpu} color={aiFlags > 0 || reliability < 50 ? "pink-500" : (reliability < 75 ? "warning" : (queueDepth > 0 ? "info" : "success"))} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8 w-full">
